@@ -1,5 +1,12 @@
 <div #rootView tabindex="0" (keypress)="keypress($event)" (focus)="onfocus($event)">
-    <div *ngFor="let line of lines">
-        {{ line }}
+    <div *ngFor="let line of lines" class="line">
+        {{ line.text }}
+        <div *ngIf="line.hasCursor" class="cursor blink"
+             [style.left]="line.cursorOffset"
+             [style.height]="line.lineHeight" >
+        </div>
     </div>
+</div>
+
+<div class="text-width-calculation">
 </div>
