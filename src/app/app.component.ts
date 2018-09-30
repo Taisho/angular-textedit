@@ -11,7 +11,8 @@ export class AppComponent implements OnInit {
 
 	public title = 'TextEdit';
 	public rootViewText = "";
-	public lines: Array<any> = [];
+	public lines: Array<Line> = [];
+    public currLine: Line;
 
 	@ViewChild("rootView") rootView;
 	@ViewChild("textWidthCalculator") textWidthCalculator;
@@ -23,10 +24,12 @@ export class AppComponent implements OnInit {
 			cursorOffset: 0,
 			text: "",
 		});
+        this.currLine = this.lines[0];
 
 		setTimeout( ()=> {
 			this.rootView.nativeElement.focus();
 		}, 500);
+
 	}
 
 	public onfocus(event: any) {
@@ -40,12 +43,25 @@ export class AppComponent implements OnInit {
 		var cssProp = window.getComputedStyle(target, null).getPropertyValue('font-size');
 		matches = cssProp.match(/([\d.,]+)(\w+)/);
 
-		this.lines[0].text += event.key;
-		let length = this.lines[0].text.length;
+		if(event.key.length == 1) {
+			this.currLine.text += event.key;
+			let length = this.currLine.text.length;
 
-		this.lines[0].cursorOffset = this.calculateTextWidth(this.lines[0].text)+"px";
+            //TODO Cache cursor height
+            let dimens = this.calculateTextWidth(this.currLine.text);
+			this.currLine.cursorOffset = dimens[0];
+			this.currLine.lineHeight = dimens[1]+"px";
+		}
+		else {
+			switch(event.key) {
+                case 'Enter':
+                    this.currLine.hasCursor = false;
+                    this.currLine = new Line({hasCursor: true});
+                    this.lines.push(this.currLine);
+                    break;
 
-		this.lines[0].lineHeight = target.clientHeight+"px";
+			}
+		}
 	}
 
 	public mouseClick(event: MouseEvent) {
@@ -62,7 +78,7 @@ export class AppComponent implements OnInit {
 			portion = innerText.substr(0, i+1);
 			let width = this.calculateTextWidth(portion);
 			pxOffset = width+"px";
-			if(width > x) {
+			if(width[0] > x) {
 				break;
 			}
 
@@ -72,15 +88,26 @@ export class AppComponent implements OnInit {
 		}
 
 		let line = eval('this.lines['+target.dataset.num+']');
+        this.setCurrentLine(line,pxOffset,i);
+	}
+
+    public setCurrentLine(line: Line, pxOffset: string, i:number) {
+        this.currLine.hasCursor = false;
+        this.currLine = line;
+
 		line.hasCursor = true;
 		line.cursorOffset = pxOffset;
 		line.cursorCharOffset = i;
-				
-	}
+    }
 
 	public calculateTextWidth(str: string) {
 		this.textWidthCalculator.nativeElement.innerText = str;
-		return this.textWidthCalculator.nativeElement.clientWidth;
+        let dimens = [
+            this.textWidthCalculator.nativeElement.clientWidth,
+            this.textWidthCalculator.nativeElement.clientHeight,
+        ];
+
+		return dimens;
 	}
 
 	public elementCoords ( node: any ) {
@@ -103,17 +130,17 @@ export class AppComponent implements OnInit {
 }
 
 export class Line {
-	public lineHeight= 0;
-	public hasCursor= true;
-	public cursorOffset= 0;
-	public cursorCharOffset= 0;
-	public text= "";
+	public lineHeight: string = "0";
+	public hasCursor = true;
+	public cursorOffset: string = "0";
+	public cursorCharOffset = 0;
+	public text = "";
 
-	constructor(input) {
-		this.lineHeight = input.lineHeight;
-		this.hasCursor = input.hasCursor;
-		this.cursorOffset = input.cursorOffset;
-		this.cursorCharOffset = input.cursorCharOffset;
-		this.text = input.text;
+	constructor(input:any = {}) {
+		this.lineHeight = input.lineHeight || 0;
+		this.hasCursor = input.hasCursor || false;
+		this.cursorOffset = input.cursorOffset || 0;
+		this.cursorCharOffset = input.cursorCharOffset || 0;
+		this.text = input.text || "";
 	}
 }

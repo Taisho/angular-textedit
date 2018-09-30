@@ -2,7 +2,7 @@
     (keypress)="keypress($event)" (focus)="onfocus($event)">
     <div *ngFor="let line of lines; let i=index" class="line" [attr.data-num]="i" (click)="mouseClick($event)">
         {{ line.text }}
-        <div *ngIf="line.hasCursor;" class="cursor blink"
+        <div *ngIf="line.hasCursor" class="cursor blink"
              [style.left]="line.cursorOffset"
              [style.height]="line.lineHeight">
         </div>
