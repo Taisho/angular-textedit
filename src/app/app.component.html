@@ -1,0 +1,5 @@
+<div #rootView tabindex="0" (keypress)="keypress($event)" (focus)="onfocus($event)">
+    <div *ngFor="let line of lines">
+        {{ line }}
+    </div>
+</div>
